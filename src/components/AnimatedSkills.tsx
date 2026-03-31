@@ -138,10 +138,10 @@ function SkillCardContent({
   index: number;
 }) {
   return (
-    <div className="group relative rounded-[2rem] border border-white/[0.06] bg-card/80 backdrop-blur-xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] hover:shadow-[0_30px_80px_-15px_rgba(217,119,6,0.15)] hover:border-primary/20 transition-all duration-500">
+    <div className="group relative rounded-[2rem] border border-white/[0.06] bg-card/80 backdrop-blur-xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] hover:shadow-[0_30px_80px_-15px_rgba(217,119,6,0.15)] hover:border-primary/20 transition-all duration-500 h-full flex flex-col">
       <div className={`absolute inset-0 bg-gradient-to-br ${card.accent} opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
-      <div className="relative z-10 p-6 md:p-8 lg:p-10 space-y-5">
+      <div className="relative z-10 p-6 md:p-8 lg:p-10 flex flex-col flex-1">
         <div className="space-y-2">
           <span className="text-xs font-bold tracking-[0.3em] uppercase text-primary/70">
             {String(index + 1).padStart(2, "0")} — {card.subtitle}
@@ -151,36 +151,35 @@ function SkillCardContent({
           </h3>
         </div>
 
-        <p className="text-muted-foreground text-sm lg:text-base leading-relaxed">
+        <p className="text-muted-foreground text-sm lg:text-base leading-relaxed mt-5">
           {card.description}
         </p>
 
-        {card.images.length > 0 && (
-          <div className="flex gap-3 pt-2">
-            {card.images.map((img, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
-                className="relative flex-1 aspect-[4/3] rounded-xl overflow-hidden border border-white/[0.08] shadow-lg group/img"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  quality={85}
-                  className="object-cover object-top group-hover/img:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <span className="absolute bottom-2 left-3 text-[10px] font-mono text-white/70 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-md">
-                  {img.alt}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        {/* Images area — fixed height for consistency */}
+        <div className="flex gap-3 pt-4 mt-auto" style={{ height: 140 }}>
+          {card.images.map((img, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
+              className="relative flex-1 h-full rounded-xl overflow-hidden border border-white/[0.08] shadow-lg group/img"
+            >
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                quality={85}
+                className="object-cover object-top group-hover/img:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <span className="absolute bottom-2 left-3 text-[10px] font-mono text-white/70 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                {img.alt}
+              </span>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -222,7 +221,9 @@ export function AnimatedSkills() {
             key={index}
             side={index % 2 === 0 ? "left" : "right"}
           >
-            <SkillCardContent card={card} index={index} />
+            <div style={{ minHeight: 340 }} className="h-full">
+              <SkillCardContent card={card} index={index} />
+            </div>
           </ConnectedCard>
         ))}
       </div>

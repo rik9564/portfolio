@@ -51,11 +51,11 @@ export function ProjectCard() {
                 className="flex-shrink-0"
               >
                 <IPhoneFrame>
-                  {/* Live mobile iframe — 375×812 scaled to fill 270×570 screen */}
+                  {/* Live mobile iframe — 375×792 scaled to fill 270×570 screen */}
                   <div
                     style={{
                       width: "375px",
-                      height: "812px",
+                      height: "792px",
                       transform: "scale(0.72)",
                       transformOrigin: "top left",
                     }}
@@ -64,7 +64,7 @@ export function ProjectCard() {
                       src="https://www.vyon.in"
                       title="VYON Studios — Mobile Preview"
                       className="border-0"
-                      style={{ width: "100%", height: "100%" }}
+                      style={{ width: "100%", height: "100%", colorScheme: "only dark" }}
                       loading="lazy"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
                     />
@@ -170,7 +170,7 @@ export function MacbookPreview() {
               className="absolute inset-0 z-10"
               style={{
                 width: "1440px",
-                height: "900px",
+                height: "1080px",
                 transform: "scale(0.3556)",
                 transformOrigin: "top left",
               }}
@@ -182,6 +182,7 @@ export function MacbookPreview() {
                 style={{
                   width: "100%",
                   height: "100%",
+                  colorScheme: "only dark",
                 }}
                 loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
