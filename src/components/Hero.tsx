@@ -26,28 +26,17 @@ function ScrollPhase({
   startVisible?: boolean;
   align?: "center" | "left";
 }) {
-  /* Clamp opacity hard to 0 outside the active range to prevent ghost text. */
-  const opacity = useTransform(
-    scrollYProgress,
-    startVisible
-      ? [0, exit[0], exit[1]]
-      : [enter[0], enter[1], exit[0], exit[1]],
-    startVisible
-      ? [1, 1, 0]
-      : [0, 1, 1, 0],
-    { clamp: true }
-  );
+  /* Opacity with hard clamp: pin to exactly 0 outside the active scroll range.
+     Uses explicit keyframes before enter and after exit to prevent any
+     extrapolation that causes ghost/shadow text artifacts. */
+  const opacityInput = startVisible
+    ? [0, exit[0], exit[1], Math.min(exit[1] + 0.005, 1)]
+    : [Math.max(enter[0] - 0.005, 0), enter[0], enter[1], exit[0], exit[1], Math.min(exit[1] + 0.005, 1)];
+  const opacityOutput = startVisible
+    ? [1, 1, 0, 0]
+    : [0, 0, 1, 1, 0, 0];
 
-  /* Hide from compositing entirely when invisible — eliminates
-     any residual drop-shadow / backdrop-blur ghost artifacts.
-     Derived directly from scrollYProgress for reliable reactivity. */
-  const activeStart = startVisible ? 0 : enter[0];
-  const activeEnd = exit[1];
-  const visibility = useTransform(scrollYProgress, (v) =>
-    v >= activeStart && v <= activeEnd
-      ? "visible" as const
-      : "hidden" as const
-  );
+  const opacity = useTransform(scrollYProgress, opacityInput, opacityOutput);
 
   /* Center-aligned phases use vertical slide; left-aligned use horizontal slide */
   const x = useTransform(
@@ -71,7 +60,7 @@ function ScrollPhase({
 
   return (
     <motion.div
-      style={{ opacity, x, y, visibility, willChange: "transform, opacity" }}
+      style={{ opacity, x, y, willChange: "transform, opacity" }}
       className={`absolute inset-0 flex flex-col pointer-events-none px-6 md:px-12 lg:px-20 z-10 ${
         align === "left"
           ? "items-start justify-center"
