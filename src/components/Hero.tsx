@@ -26,25 +26,27 @@ function ScrollPhase({
   startVisible?: boolean;
   align?: "center" | "left";
 }) {
-  /* Clamp opacity hard to 0 outside the active range to prevent ghost text.
-     Add explicit keyframes just past exit to pin opacity at 0. */
-  const exitEnd = Math.min(exit[1] + 0.001, 1);
-  const enterStart = Math.max(enter[0] - 0.001, 0);
-
+  /* Clamp opacity hard to 0 outside the active range to prevent ghost text. */
   const opacity = useTransform(
     scrollYProgress,
     startVisible
-      ? [0, exit[0], exit[1], exitEnd]
-      : [enterStart, enter[0], enter[1], exit[0], exit[1], exitEnd],
+      ? [0, exit[0], exit[1]]
+      : [enter[0], enter[1], exit[0], exit[1]],
     startVisible
-      ? [1, 1, 0, 0]
-      : [0, 0, 1, 1, 0, 0]
+      ? [1, 1, 0]
+      : [0, 1, 1, 0],
+    { clamp: true }
   );
 
   /* Hide from compositing entirely when invisible — eliminates
-     any residual drop-shadow / backdrop-blur ghost artifacts */
-  const visibility = useTransform(opacity, (v) =>
-    v < 0.01 ? "hidden" as const : "visible" as const
+     any residual drop-shadow / backdrop-blur ghost artifacts.
+     Derived directly from scrollYProgress for reliable reactivity. */
+  const activeStart = startVisible ? 0 : enter[0];
+  const activeEnd = exit[1];
+  const visibility = useTransform(scrollYProgress, (v) =>
+    v >= activeStart && v <= activeEnd
+      ? "visible" as const
+      : "hidden" as const
   );
 
   /* Center-aligned phases use vertical slide; left-aligned use horizontal slide */
