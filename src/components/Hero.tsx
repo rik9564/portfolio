@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, MotionValue, useSpring } from "framer-motion";
 import { ArrowRight, Download } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useMotionValueEvent } from "framer-motion";
 
 /* ─── Scroll Phase: fades in → holds → fades out ─── */
+/* Pure motion-value driven — NO React state re-renders */
 function ScrollPhase({
   children,
   scrollYProgress,
@@ -38,16 +39,9 @@ function ScrollPhase({
       : [60, 0, 0, -60]
   );
 
-  const [isVisible, setIsVisible] = useState(startVisible);
-  useMotionValueEvent(opacity, "change", (v) => {
-    setIsVisible(v > 0.01);
-  });
-
-  if (!isVisible) return null;
-
   return (
     <motion.div
-      style={{ opacity, y }}
+      style={{ opacity, y, willChange: "transform, opacity" }}
       className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-6 z-10"
     >
       {children}
@@ -55,12 +49,46 @@ function ScrollPhase({
   );
 }
 
+/* ─── Phase Dot: scroll-driven, zero re-renders ─── */
+function PhaseDot({
+  pos,
+  scrollProgress,
+}: {
+  pos: number;
+  scrollProgress: MotionValue<number>;
+}) {
+  const threshold = pos - 0.05;
+  const borderColor = useTransform(scrollProgress, (v) =>
+    v >= threshold ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.15)"
+  );
+  const backgroundColor = useTransform(scrollProgress, (v) =>
+    v >= threshold ? "rgba(255,255,255,0.3)" : "transparent"
+  );
+
+  return (
+    <motion.div
+      className="w-[6px] h-[6px] rounded-full"
+      style={{
+        position: "absolute",
+        top: `${pos * 100}%`,
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor,
+        backgroundColor,
+      }}
+    />
+  );
+}
+
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const seekingRef = useRef(false);
-  const pendingTimeRef = useRef<number | null>(null);
   const videoReadyRef = useRef(false);
+  const rafIdRef = useRef<number>(0);
+  const targetTimeRef = useRef<number>(0);
+  const lastSetTimeRef = useRef<number>(-1);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -74,45 +102,37 @@ export function Hero() {
 
   const overlayOpacity = useTransform(scrollYProgress, [0.92, 1], [0.05, 0.85]);
 
-  /* Robust seek: avoid setting currentTime while a seek is in-flight.
-     When a seek completes, if a newer target was queued, apply it immediately. */
-  const seekTo = useCallback((time: number) => {
-    const video = videoRef.current;
-    if (!video || !videoReadyRef.current) return;
-
-    if (seekingRef.current) {
-      // A seek is already in progress — just store the latest target
-      pendingTimeRef.current = time;
-      return;
-    }
-
-    seekingRef.current = true;
-    pendingTimeRef.current = null;
-    video.currentTime = time;
+  /* ── High-performance video scrubbing ──
+     Uses requestAnimationFrame to coalesce scroll events into a single
+     seek per paint frame. Only seeks when the target actually changed
+     by a meaningful amount (> 0.01s) to avoid redundant decodes. */
+  const scheduleSeek = useCallback(() => {
+    if (rafIdRef.current) return; // already scheduled
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = 0;
+      const video = videoRef.current;
+      if (!video || !videoReadyRef.current) return;
+      const target = targetTimeRef.current;
+      // Only seek if change is meaningful (avoids micro-stutters)
+      if (Math.abs(target - lastSetTimeRef.current) > 0.01) {
+        lastSetTimeRef.current = target;
+        video.currentTime = target;
+      }
+    });
   }, []);
 
-  /* Seek video to scroll position */
+  /* Seek video to scroll position — RAF-throttled */
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     const video = videoRef.current;
     if (!video || !video.duration || isNaN(video.duration)) return;
-    seekTo(progress * video.duration);
+    targetTimeRef.current = progress * video.duration;
+    scheduleSeek();
   });
 
-  /* Set up video: pause, seek to 0, listen for seeked events */
+  /* Set up video: pause, seek to 0 */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    const onSeeked = () => {
-      seekingRef.current = false;
-      // If a newer seek was queued while we were seeking, apply it now
-      if (pendingTimeRef.current !== null) {
-        const next = pendingTimeRef.current;
-        pendingTimeRef.current = null;
-        seekingRef.current = true;
-        video.currentTime = next;
-      }
-    };
 
     const onReady = () => {
       videoReadyRef.current = true;
@@ -120,7 +140,6 @@ export function Hero() {
       video.currentTime = 0;
     };
 
-    video.addEventListener("seeked", onSeeked);
     video.addEventListener("loadedmetadata", onReady);
 
     // If metadata is already loaded (cached), trigger immediately
@@ -129,8 +148,8 @@ export function Hero() {
     }
 
     return () => {
-      video.removeEventListener("seeked", onSeeked);
       video.removeEventListener("loadedmetadata", onReady);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     };
   }, []);
 
@@ -148,9 +167,12 @@ export function Hero() {
   */
 
   const [heroHovered, setHeroHovered] = useState(false);
-  const [scrollPct, setScrollPct] = useState(0);
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setScrollPct(v);
+
+  /* Scroll-driven progress for phase dots — motion value, no React state */
+  const smoothScrollPct = useSpring(scrollYProgress, {
+    stiffness: 300,
+    damping: 40,
+    restDelta: 0.001,
   });
 
   return (
@@ -170,6 +192,7 @@ export function Hero() {
           playsInline
           preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ willChange: "contents", transform: "translateZ(0)" }}
         />
 
         {/* Subtle full-screen tint — only darkens heavily at scroll end for section transition */}
@@ -369,40 +392,22 @@ export function Hero() {
             {/* Fill */}
             <motion.div
               className="absolute top-0 left-0 w-full rounded-full bg-gradient-to-b from-amber-400 via-fuchsia-400/80 to-fuchsia-500/40"
-              style={{ height: useTransform(scrollYProgress, [0, 1], ["0%", "100%"]) }}
+              style={{ height: useTransform(smoothScrollPct, [0, 1], ["0%", "100%"]), willChange: "height" }}
             />
             {/* Glow on the fill tip */}
             <motion.div
               className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-400 blur-[4px]"
-              style={{ top: useTransform(scrollYProgress, [0, 1], ["0%", "100%"]) }}
+              style={{ top: useTransform(smoothScrollPct, [0, 1], ["0%", "100%"]), willChange: "top" }}
             />
           </div>
 
-          {/* Phase dots */}
+          {/* Phase dots — pure motion-value driven, no React state */}
           <div className="absolute left-1/2 -translate-x-1/2 h-32 flex flex-col justify-between pointer-events-none"
             style={{ top: 0 }}
           >
-            {[0.10, 0.34, 0.58, 0.82].map((pos, i) => {
-              const active = scrollPct >= pos - 0.05;
-              return (
-                <div
-                  key={i}
-                  className="w-[6px] h-[6px] rounded-full border transition-all duration-300"
-                  style={{
-                    position: "absolute",
-                    top: `${pos * 100}%`,
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    borderColor: active
-                      ? "rgba(255,255,255,0.6)"
-                      : "rgba(255,255,255,0.15)",
-                    backgroundColor: active
-                      ? "rgba(255,255,255,0.3)"
-                      : "transparent",
-                  }}
-                />
-              );
-            })}
+            {[0.10, 0.34, 0.58, 0.82].map((pos, i) => (
+              <PhaseDot key={i} pos={pos} scrollProgress={smoothScrollPct} />
+            ))}
           </div>
         </motion.div>
 

@@ -20,9 +20,9 @@ export function ScrollLine({ children }: { children: React.ReactNode }) {
   });
 
   const smooth = useSpring(scrollYProgress, {
-    stiffness: 80,
-    damping: 30,
-    restDelta: 0.0005,
+    stiffness: 200,
+    damping: 40,
+    restDelta: 0.0001,
   });
 
   // Clip path: reveal line from top to bottom
@@ -42,6 +42,7 @@ export function ScrollLine({ children }: { children: React.ReactNode }) {
         className="absolute left-5 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-px pointer-events-none z-[1]"
         style={{
           clipPath: lineClip,
+          willChange: "clip-path",
           backgroundImage:
             "repeating-linear-gradient(to bottom, hsl(36, 95%, 55%, 0.5) 0px, hsl(36, 95%, 55%, 0.5) 6px, transparent 6px, transparent 14px)",
         }}

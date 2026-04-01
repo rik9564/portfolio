@@ -76,9 +76,10 @@
 }
 
 /* Hide browser scrollbar globally */
-html,
 html {
-  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 body {
   scrollbar-width: none; /* Firefox */
@@ -89,4 +90,19 @@ body::-webkit-scrollbar {
   display: none; /* Chrome / Safari / Opera */
   width: 0;
   height: 0;
+}
+
+/* GPU-promote sticky/fixed layers */
+.sticky,
+[style*="position: sticky"],
+.fixed {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize motion elements */
+[data-framer-component],
+[style*="will-change"] {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }

@@ -31,9 +31,9 @@ export function ConnectedCard({
   });
 
   const smooth = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 25,
-    restDelta: 0.001,
+    stiffness: 200,
+    damping: 35,
+    restDelta: 0.0005,
   });
 
   // Card slides in from far off-screen

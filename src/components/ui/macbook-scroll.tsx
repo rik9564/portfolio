@@ -166,6 +166,8 @@ export const Lid = ({
           translateY: translate,
           transformStyle: "preserve-3d",
           transformOrigin: "top",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
         }}
         className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#010101] overflow-hidden"
       >

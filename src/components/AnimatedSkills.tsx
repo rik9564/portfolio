@@ -106,11 +106,12 @@ function TickerRow({ items, speed }: { items: string[]; speed: number }) {
         className="flex gap-6 whitespace-nowrap w-max items-center"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
+        style={{ willChange: "transform" }}
       >
         {doubled.map((item, i) => (
           <div
             key={`${item}-${i}`}
-            className="flex items-center gap-3 px-6 py-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 group cursor-default"
+            className="flex items-center gap-3 px-6 py-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors duration-300 group cursor-default"
           >
             <svg
               viewBox="0 0 24 24"
