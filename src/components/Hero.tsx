@@ -10,7 +10,9 @@ const FRAME_PATH = (i: number) =>
   `/frames/frame_${String(i + 1).padStart(4, "0")}.webp`;
 
 /* ─── Scroll Phase: fades in → holds → fades out ─── */
-/* Pure motion-value driven — NO React state re-renders */
+/* Uses useMotionValueEvent to toggle display on/off at phase boundaries.
+   This prevents ghost text from drop-shadow/backdrop-blur compositing
+   at near-zero opacity, while keeping transitions perfectly smooth. */
 function ScrollPhase({
   children,
   scrollYProgress,
@@ -26,17 +28,28 @@ function ScrollPhase({
   startVisible?: boolean;
   align?: "center" | "left";
 }) {
-  /* Opacity with hard clamp: pin to exactly 0 outside the active scroll range.
-     Uses explicit keyframes before enter and after exit to prevent any
-     extrapolation that causes ghost/shadow text artifacts. */
-  const opacityInput = startVisible
-    ? [0, exit[0], exit[1], Math.min(exit[1] + 0.005, 1)]
-    : [Math.max(enter[0] - 0.005, 0), enter[0], enter[1], exit[0], exit[1], Math.min(exit[1] + 0.005, 1)];
-  const opacityOutput = startVisible
-    ? [1, 1, 0, 0]
-    : [0, 0, 1, 1, 0, 0];
+  /* Small margin so the element mounts slightly before the fade starts,
+     preventing any visible pop-in. */
+  const MARGIN = 0.02;
+  const showStart = startVisible ? 0 : Math.max(enter[0] - MARGIN, 0);
+  const showEnd = Math.min(exit[1] + MARGIN, 1);
 
-  const opacity = useTransform(scrollYProgress, opacityInput, opacityOutput);
+  const [visible, setVisible] = useState(startVisible);
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const shouldShow = v >= showStart && v <= showEnd;
+    setVisible(shouldShow);
+  });
+
+  const opacity = useTransform(
+    scrollYProgress,
+    startVisible
+      ? [0, exit[0], exit[1]]
+      : [enter[0], enter[1], exit[0], exit[1]],
+    startVisible
+      ? [1, 1, 0]
+      : [0, 1, 1, 0]
+  );
 
   /* Center-aligned phases use vertical slide; left-aligned use horizontal slide */
   const x = useTransform(
@@ -57,6 +70,8 @@ function ScrollPhase({
       ? (startVisible ? [0, 0, -60] : [60, 0, 0, -60])
       : (startVisible ? [0, 0, 0] : [0, 0, 0, 0])
   );
+
+  if (!visible) return null;
 
   return (
     <motion.div
