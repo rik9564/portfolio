@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Briefcase, Terminal, CheckCircle2 } from "lucide-react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { IconBriefcase, IconTerminal, IconCircleCheck } from "@tabler/icons-react";
 import { useRef } from "react";
 import { ConnectedCard } from "@/components/ConnectedCard";
 
@@ -52,7 +52,7 @@ function TimelineCardContent({ exp, index }: { exp: (typeof experiences)[number]
             transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
             className="flex gap-3 text-muted-foreground text-sm md:text-base leading-relaxed"
           >
-            <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-amber-500 shrink-0 mt-0.5" />
+            <IconCircleCheck className="w-4 h-4 md:w-5 md:h-5 text-amber-500 shrink-0 mt-0.5" />
             <span>{highlight}</span>
           </motion.li>
         ))}
@@ -83,7 +83,7 @@ export function Timeline() {
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
           className="p-4 rounded-[1.2rem] bg-primary/10 text-primary border border-primary/20 shadow-inner"
         >
-          <Briefcase className="w-8 h-8" />
+          <IconBriefcase className="w-8 h-8" />
         </motion.div>
         <h2 className="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-muted-foreground">
           Experience
@@ -96,7 +96,7 @@ export function Timeline() {
           <ConnectedCard
             key={index}
             side={index % 2 === 0 ? "left" : "right"}
-            nodeIcon={<Terminal className="w-4 h-4 md:w-5 md:h-5" />}
+            nodeIcon={<IconTerminal className="w-4 h-4 md:w-5 md:h-5" />}
           >
             <TimelineCardContent exp={exp} index={index} />
           </ConnectedCard>

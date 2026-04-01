@@ -92,17 +92,11 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
-/* GPU-promote sticky/fixed layers */
-.sticky,
-[style*="position: sticky"],
-.fixed {
-  transform: translateZ(0);
-  backface-visibility: hidden;
+/* Ticker scroll animation — runs on GPU compositor thread */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
-
-/* Optimize motion elements */
-[data-framer-component],
-[style*="will-change"] {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+.animate-ticker {
+  animation: ticker-scroll linear infinite;
 }

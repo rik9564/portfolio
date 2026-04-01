@@ -320,7 +320,15 @@ export function Hero() {
   const overlayOpacity = useTransform(
     scrollYProgress,
     [0, 0.48, 0.72, 0.92, 1],
-    [0.05, 0.05, 0.15, 0.25, 0.85]
+    [0.05, 0.05, 0.15, 0.35, 1]
+  );
+
+  /* Bottom-edge gradient opacity — ramps up in the final 30% of scroll
+     to seamlessly dissolve the hero canvas into the page background */
+  const bottomFadeOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.70, 0.92, 1],
+    [0, 0, 0.6, 1]
   );
 
   /*
@@ -359,6 +367,11 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />
         {/* Top edge softener — subtle gradient prevents hard canvas boundary */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/15 via-transparent to-transparent pointer-events-none" />
+        {/* Bottom edge dissolve — fades canvas into page background as hero ends */}
+        <motion.div
+          style={{ opacity: bottomFadeOpacity }}
+          className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none"
+        />
         {/* Soft edge vignette — subtle, no hard seams */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, rgba(10,8,6,0.2) 0%, transparent 35%, transparent 90%, rgba(10,8,6,0.08) 100%)" }} />
 

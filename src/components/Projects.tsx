@@ -1,11 +1,35 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ExternalLink } from "lucide-react";
-import { useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
+import { IconExternalLink } from "@tabler/icons-react";
+import { useRef, useState, useEffect } from "react";
 import { MacbookScroll } from "@/components/ui/macbook-scroll";
 import { IPhoneFrame } from "@/components/ui/iphone-frame";
 import { ConnectedCard } from "@/components/ConnectedCard";
+
+/** Defers rendering children until the container enters the viewport */
+function LazyIframe({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "200px" } // start loading 200px before visible
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return <div ref={ref}>{visible ? children : null}</div>;
+}
 
 /**
  * Project info card — connects to the center scroll line.
@@ -52,23 +76,25 @@ export function ProjectCard() {
               >
                 <IPhoneFrame>
                   {/* Live mobile iframe — 375×792 scaled to fill 270×570 screen */}
-                  <div
-                    style={{
-                      width: "375px",
-                      height: "792px",
-                      transform: "scale(0.72)",
-                      transformOrigin: "top left",
-                    }}
-                  >
-                    <iframe
-                      src="https://www.vyon.in"
-                      title="VYON Studios — Mobile Preview"
-                      className="border-0"
-                      style={{ width: "100%", height: "100%", colorScheme: "only dark" }}
-                      loading="lazy"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-                    />
-                  </div>
+                  <LazyIframe>
+                    <div
+                      style={{
+                        width: "375px",
+                        height: "792px",
+                        transform: "scale(0.72)",
+                        transformOrigin: "top left",
+                      }}
+                    >
+                      <iframe
+                        src="https://www.vyon.in"
+                        title="VYON Studios — Mobile Preview"
+                        className="border-0"
+                        style={{ width: "100%", height: "100%", colorScheme: "only dark" }}
+                        loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                      />
+                    </div>
+                  </LazyIframe>
                 </IPhoneFrame>
               </motion.div>
 
@@ -122,7 +148,7 @@ export function ProjectCard() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-[1.5rem] font-bold hover:scale-105 transition-transform shadow-[0_0_20px_-5px_rgba(217,119,6,0.4)]"
                   >
-                    Visit Live Site <ExternalLink className="w-5 h-5" />
+                    Visit Live Site <IconExternalLink className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -155,7 +181,7 @@ export function MacbookPreview() {
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-amber-500/30 transition-colors"
           >
-            vyon.in <ExternalLink className="w-3 h-3" />
+            vyon.in <IconExternalLink className="w-3 h-3" />
           </a>
         }
         screenContent={
@@ -166,28 +192,30 @@ export function MacbookPreview() {
               alt="VYON Studios — Fallback"
               className="absolute inset-0 w-full h-full object-cover object-left-top"
             />
-            <div
-              className="absolute inset-0 z-10"
-              style={{
-                width: "1440px",
-                height: "1080px",
-                transform: "scale(0.3556)",
-                transformOrigin: "top left",
-              }}
-            >
-              <iframe
-                src="https://www.vyon.in"
-                title="VYON Studios — Live Preview"
-                className="border-0"
+            <LazyIframe>
+              <div
+                className="absolute inset-0 z-10"
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  colorScheme: "only dark",
+                  width: "1440px",
+                  height: "1080px",
+                  transform: "scale(0.3556)",
+                  transformOrigin: "top left",
                 }}
-                loading="lazy"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-              />
-            </div>
+              >
+                <iframe
+                  src="https://www.vyon.in"
+                  title="VYON Studios — Live Preview"
+                  className="border-0"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    colorScheme: "only dark",
+                  }}
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                />
+              </div>
+            </LazyIframe>
           </div>
         }
       />

@@ -1,9 +1,22 @@
+import dynamic from "next/dynamic";
 import { Hero } from "@/components/Hero";
-import { ProjectCard, MacbookPreview } from "@/components/Projects";
-import { Timeline } from "@/components/Timeline";
-import { AnimatedSkills } from "@/components/AnimatedSkills";
 import { ScrollLine } from "@/components/ScrollLine";
-import { FloatingNav } from "@/components/FloatingNav";
+
+const AnimatedSkills = dynamic(
+  () => import("@/components/AnimatedSkills").then((m) => m.AnimatedSkills)
+);
+const ProjectCard = dynamic(
+  () => import("@/components/Projects").then((m) => m.ProjectCard)
+);
+const MacbookPreview = dynamic(
+  () => import("@/components/Projects").then((m) => m.MacbookPreview)
+);
+const Timeline = dynamic(
+  () => import("@/components/Timeline").then((m) => m.Timeline)
+);
+const FloatingNav = dynamic(
+  () => import("@/components/FloatingNav").then((m) => m.FloatingNav)
+);
 
 export default function Home() {
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "motion/react";
 import Image from "next/image";
 import { useRef } from "react";
 import { ConnectedCard } from "@/components/ConnectedCard";
@@ -102,11 +102,9 @@ function TickerRow({ items, speed }: { items: string[]; speed: number }) {
         }}
       />
 
-      <motion.div
-        className="flex gap-6 whitespace-nowrap w-max items-center"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-        style={{ willChange: "transform" }}
+      <div
+        className="flex gap-6 whitespace-nowrap w-max items-center animate-ticker"
+        style={{ willChange: "transform", animationDuration: `${speed}s` }}
       >
         {doubled.map((item, i) => (
           <div
@@ -125,7 +123,7 @@ function TickerRow({ items, speed }: { items: string[]; speed: number }) {
             </span>
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -200,7 +200,7 @@ export const Trackpad = () => {
 
 export const Keypad = () => {
   return (
-    <div className="mx-1 h-full [transform:translateZ(0)] rounded-md bg-[#050505] p-1 [will-change:transform]">
+    <div className="mx-1 h-full rounded-md bg-[#050505] p-1">
       {/* First Row */}
       <div className="mb-[2px] flex w-full shrink-0 gap-[2px]">
         <KBtn
@@ -570,7 +570,7 @@ export const KBtn = ({
   return (
     <div
       className={cn(
-        "[transform:translateZ(0)] rounded-[4px] p-[0.5px] [will-change:transform]",
+        "[transform:translateZ(0)] rounded-[4px] p-[0.5px]",
         backlit && "bg-white/[0.2] shadow-xl shadow-white",
       )}
     >
